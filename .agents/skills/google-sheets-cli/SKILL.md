@@ -9,6 +9,28 @@ This skill provides two command-line tools for reading and writing values in Goo
 - `read_sheet.py`: Read non-empty values from a column
 - `write_sheet.py`: Write values to specific cells
 
+## Decision Tree: When to Use Each Tool
+
+Use this flowchart to decide which script and options to use:
+
+```
+Do you need to READ data from the spreadsheet?
+├─ YES: Use read_sheet.py
+│  ├─ Need to process the data programmatically?
+│  │  ├─ YES: Use --json flag for structured output
+│  │  └─ NO: Use default plain text output
+│  └─ Reading from a specific worksheet?
+│     └─ YES: Add worksheet name as positional argument
+│
+└─ NO: Do you need to WRITE data?
+   └─ YES: Use write_sheet.py
+      ├─ Want to change the cell value?
+      │  ├─ YES: Provide the value argument
+      │  └─ NO: Omit value for formatting-only mode
+      └─ Writing to a specific worksheet?
+         └─ YES: Add worksheet name as positional argument
+```
+
 ## Prerequisites
 
 Before using this skill, ensure:
@@ -130,6 +152,69 @@ When an agent uses this skill, it should:
 1. **For reading data**: Use `read_sheet.py` to fetch values from a column, optionally filtering with `--json` for structured data
 2. **For writing data**: Use `write_sheet.py` to update cells, with the row/column/value as positional arguments
 3. **For verification**: Combine both tools to verify writes by reading back the data
+
+## Choosing Output Format and Operation Modes
+
+### Plain Text vs. JSON Output
+
+**Use plain text (default)** when:
+- Output will be read by humans or displayed in logs
+- Piping to shell commands with `grep` or `awk`
+- Building simple shell scripts
+
+Example:
+```bash
+python3 read_sheet.py --spreadsheet-id SHEET_ID A | grep "^5:"
+```
+
+**Use JSON output (--json)** when:
+- Output will be processed by other programs or scripts
+- Transforming data in Python or other languages
+- Storing results in structured format
+- Building agent workflows that parse responses
+
+Example:
+```bash
+python3 read_sheet.py --spreadsheet-id SHEET_ID A --json | python3 -m json.tool
+```
+
+### Write with Value vs. Formatting-Only Mode
+
+**Provide a value** when:
+- Updating cell contents (grades, status, dates, etc.)
+- Populating a spreadsheet from external data
+- Recording results or measurements
+
+Example:
+```bash
+python3 write_sheet.py --spreadsheet-id SHEET_ID C 5 "PASS"
+```
+
+**Omit the value (formatting-only)** when:
+- Highlighting cells for review without changing content
+- Marking cells as processed or flagged
+- Applying visual formatting as a side effect
+
+Example:
+```bash
+python3 write_sheet.py --spreadsheet-id SHEET_ID D 7
+```
+
+### Single Worksheet vs. Specific Worksheet
+
+**Use default (first worksheet)** when:
+- Your spreadsheet has only one active sheet
+- Your data is in the primary worksheet
+
+**Specify worksheet name** when:
+- Your spreadsheet has multiple sheets
+- You need to read/write to specific tabs
+
+Example:
+```bash
+python3 read_sheet.py --spreadsheet-id SHEET_ID A "Grades"
+python3 write_sheet.py --spreadsheet-id SHEET_ID B 10 "A+" "Grades"
+```
 
 ## Troubleshooting
 
