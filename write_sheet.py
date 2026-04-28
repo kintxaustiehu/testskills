@@ -19,11 +19,28 @@ def _normalize_column_letter(column_letter: str) -> str:
     return normalized
 
 
+def _normalize_hex_color(color: str) -> str:
+    normalized = color.strip().lstrip("#")
+    if not re.fullmatch(r"[0-9A-Fa-f]{6}", normalized):
+        raise ValueError(f"Invalid hex color: {color!r}")
+    return f"#{normalized.lower()}"
+
+
+def _hex_to_rgb(color: str) -> dict[str, float]:
+    normalized = _normalize_hex_color(color).lstrip("#")
+    return {
+        "red": int(normalized[0:2], 16) / 255.0,
+        "green": int(normalized[2:4], 16) / 255.0,
+        "blue": int(normalized[4:6], 16) / 255.0,
+    }
+
+
 def write_cell_value(
     spreadsheet_id: str,
     column_letter: str,
     row_number: int,
     value: Optional[str],
+    bg_color: str,
     worksheet_name: Optional[str] = None,
 ) -> str:
     """Write to a target cell and return the A1-style cell address used."""
@@ -32,6 +49,7 @@ def write_cell_value(
 
     column = _normalize_column_letter(column_letter)
     cell_address = f"{column}{row_number}"
+    rgb = _hex_to_rgb(bg_color)
 
     client = gspread.service_account(filename="service-account.json")
     spreadsheet = client.open_by_key(spreadsheet_id)
@@ -45,17 +63,11 @@ def write_cell_value(
 
     if value is not None:
         worksheet.update(range_name=cell_address, values=[[value]])
-    else:
-        worksheet.format(
-            cell_address,
-            {
-                "backgroundColor": {
-                    "red": 1.0,
-                    "green": 0.95,
-                    "blue": 0.6,
-                }
-            },
-        )
+
+    worksheet.format(
+        cell_address,
+        {"backgroundColor": rgb},
+    )
 
     return cell_address
 
@@ -85,6 +97,11 @@ def main() -> int:
         help="Value to write (optional)",
     )
     parser.add_argument(
+        "--bg-color",
+        default="#d9ead3",
+        help="Background color to apply, as hex (default #d9ead3)",
+    )
+    parser.add_argument(
         "worksheet",
         nargs="?",
         default=None,
@@ -99,6 +116,7 @@ def main() -> int:
             column_letter=args.column,
             row_number=args.row,
             value=args.value,
+            bg_color=args.bg_color,
             worksheet_name=args.worksheet,
         )
     except Exception as exc:
