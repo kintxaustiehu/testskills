@@ -1,3 +1,60 @@
 /service-account.json
 /.venv/
-/node_modules/.agents/skills/**/service-account.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtualenvs
+venv/
+env/
+.venv/
+
+# dotenv
+.env
+.env.*
+
+# Packaging
+build/
+dist/
+*.egg-info/
+pip-wheel-metadata/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
+*.iml
+
+# Generated / outputs
+lab_markdown/lab_output.docx
+lab_markdown/lab.docx
+
+# Sensitive keys / credentials (prevent future commits)
+.agents/skills/**/service-account.json
+.claude/skills/**/service-account.json
+**/service-account.json
+credentials.json
+credentials-*.json
+client_secret.json
+*.pem
+*.key
+*.p12
+
+# Misc
+*.log
+
